@@ -1,0 +1,1 @@
+20260206 - 1123: Hardware is setup, baby just woke up. Next steps is to clear out everything from the K3S clusted and repurpose assets to support a dev environment with gittea, vscode server, will research more while the baby is awake.
