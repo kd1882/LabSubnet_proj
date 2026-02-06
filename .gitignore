@@ -1,0 +1,139 @@
+############################################
+# 🔐 Secrets & Credentials (NEVER COMMIT)
+############################################
+
+# Generic secrets
+*.key
+*.pem
+*.crt
+*.csr
+*.p12
+*.pfx
+*.der
+*.jks
+
+# SSH
+.ssh/
+id_rsa
+id_ed25519
+id_ecdsa
+*.pub
+
+# API keys / tokens
+.env
+.env.*
+*.env
+secrets.*
+credentials.*
+auth.*
+token.*
+apikey*
+
+# Ansible / automation secrets
+vault.yml
+vault.yaml
+*.vault
+group_vars/*/vault.yml
+host_vars/*/vault.yml
+
+############################################
+# 🧠 Configs that should stay local
+############################################
+
+# Network device backups / exports
+*.backup
+*.bak
+*.cfg
+*.conf.local
+*.running
+*.startup
+
+# Router / switch configs
+router-configs/
+switch-configs/private/
+firewall-rules/private/
+
+# WiFi configs
+wpa_supplicant.conf
+hostapd.conf
+dnsmasq.conf
+
+############################################
+# 🐧 OS / Editor / Tooling Noise
+############################################
+
+# Linux / macOS
+.DS_Store
+.Trash-*
+*~
+.nfs*
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# Editors / IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*.tmp
+
+############################################
+# 🐍 Python / Automation
+############################################
+
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+pip-wheel-metadata/
+
+############################################
+# 🐳 Docker / Containers
+############################################
+
+# Local-only overrides
+docker-compose.override.yml
+.env.docker
+
+# Volumes / runtime data
+docker-data/
+volumes/
+containers/
+
+############################################
+# 🧪 Logs & Runtime Output
+############################################
+
+*.log
+logs/
+tmp/
+cache/
+
+############################################
+# 📊 Generated Artifacts
+############################################
+
+# Generated diagrams / exports (keep source, not output)
+*.drawio.bkp
+*.png
+*.jpg
+*.svg
+*.pdf
+
+# Uncomment if you WANT rendered diagrams tracked
+# !docs/diagrams/*.png
+# !docs/diagrams/*.svg
+
+############################################
+# 🛑 Explicit Allowlist Examples
+############################################
+
+# Example sanitized configs you DO want tracked
+!configs/examples/
+!configs/examples/**
+!docs/**
+!diagrams/source/**
+
