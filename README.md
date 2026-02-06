@@ -1,6 +1,6 @@
 # Overview
 
-Project Intent - Set up a subnet off of my LAN that restricts access to assets within the subnet - starting off simple with vlan segmentation then growing the capability with the end goal of having a subnet that is accessed through a bastion host -> bastion host can be accessed via the trusted LAN -> bastion host can be accessed via VPN with MFA -> subnet supports 802.1x to authenticate clients along with AD for user support.
+Project Intent - Set up a subnet off of my LAN that restricts access to assets within the subnet - starting off simple with vlan segmentation then growing the capability with the end goal of having a subnet that is accessed through a bastion host -> subnet has 802.1x implemented -> bastion host can only be accessed by whitelisted assets with MFA from trusted lan (growing to VPN into trusted lan with MFA).
 
 ```less
                         Internet (WAN)
