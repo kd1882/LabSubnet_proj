@@ -29,5 +29,11 @@ Noted dhcp pulled from 192.168.1.1 not 192.168.20.1 - port three is still active
 
 Have to review settings and hardware diagram for netgear r7000 more thoroughly before trying to implement this further or just wait until the dual nic hat comes in and properly set it up as a bastion into the subnet.
 
+Currently able to get isolation via policies/firewalls on L3.
+
+*Uploading commands and updated config next nap*
+
 ---
+
+Update - should've looked at the docs for openwrt and the ac1900 r7000. Broadcom chipsets are not FOSS friendly at all with limited support and functionality.
 
