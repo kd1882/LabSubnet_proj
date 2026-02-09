@@ -36,4 +36,11 @@ Currently able to get isolation via policies/firewalls on L3.
 ---
 
 Update - should've looked at the docs for openwrt and the ac1900 r7000. Broadcom chipsets are not FOSS friendly at all with limited support and functionality.
+- Confirmed this was the issue with limited functionality with the r7000.
+
+---
+
+Pulled R7000 from config, flashed Archer A7 ac1750 ver 5.0 with openwrt, still need to do diagrams and configs, dual hat nic comes in tomorrow. 
+
+WAN -> Modem -> Router (home Lan) -> Bastion Host -> Router (lab Lan)
 
