@@ -2,7 +2,7 @@
 
 ## Overview
 
-This project implements a segmented lab subnet behind my primary home LAN in order to demonstrate:
+This project implements a segmented lab subnet behind a primary home LAN to demonstrate:
 
 * Layer 3 network segmentation
 * Firewall-based boundary enforcement
@@ -11,78 +11,80 @@ This project implements a segmented lab subnet behind my primary home LAN in ord
 * Kubernetes cluster isolation
 * Least-privilege routing and traffic flow control
 
-The lab network is treated as an isolated enclave accessible only through a hardened bastion host.
+The lab network is treated as a logically isolated enclave accessible only through a hardened bastion host.
 
 ---
 
-## Architecture Summary
+# Architecture Summary
 
-Primary edge router:
+## Primary Edge Router
 
-* TP-Link Archer AXE95
+**TP-Link Archer AXE95**
 
-  * 192.168.1.1/24
-  * Home LAN gateway
+* 192.168.1.1/24
+* Home LAN gateway
 
-Lab boundary firewall:
+## Lab Boundary Firewall
 
-* TP-Link Archer A7 running OpenWrt
+**TP-Link Archer A7 (OpenWrt)**
 
-  * WAN: 192.168.1.2
-  * LAN: 192.168.20.1/24
-  * Functions as segmented enclave firewall
+* WAN: 192.168.1.2
+* LAN: 192.168.20.1/24
+* Functions as segmented enclave firewall
 
-Lab switch:
+## Lab Distribution Switch
 
-* TP-Link TL-SG106PME
+**TP-Link TL-SG106PME**
 
-  * Layer 2 distribution for lab subnet
+* Layer 2 distribution for lab subnet
+* No routing functionality
 
 ---
 
-## Network Topology
+# Network Topology
 
-```text
+```
 Admin Laptop (192.168.1.x)
         ↓
 AXE95 (192.168.1.1)
         ↓
 Archer A7 (OpenWrt Firewall)
-WAN: 192.168.1.2
-LAN: 192.168.20.1
+  WAN: 192.168.1.2
+  LAN: 192.168.20.1
         ↓
 Lab Switch (192.168.20.0/24)
         ↓
-Bastion (192.168.20.10)
+pi5-bastion-01 (192.168.20.10)
         ↓
 k3s Cluster Nodes
 ```
 
-The Archer A7 acts as the security boundary.
-The Bastion acts as the authenticated access broker.
+The Archer A7 acts as the Layer 3 security boundary.
+`pi5-bastion-01` acts as the authenticated access broker.
 
-There is no direct routing from Home LAN into the lab subnet.
-
----
-
-## Lab Subnet
-
-**Subnet:** 192.168.20.0/24
-**Gateway:** 192.168.20.1 (OpenWrt)
-
-| Device        | IP            | Role               |
-| ------------- | ------------- | ------------------ |
-| Bastion       | 192.168.20.10 | SSH Access Gateway |
-| pi5-ctrl-01   | 192.168.20.11 | k3s Control Plane  |
-| pi5-worker-01 | 192.168.20.21 | k3s Agent          |
-| pi5-worker-02 | 192.168.20.22 | k3s Agent          |
-| pi5-worker-03 | 192.168.20.23 | k3s Agent          |
+There is **no direct routing from the Home LAN into the lab subnet.**
 
 ---
 
-## k3s Cluster Architecture
+# Lab Subnet
 
-```text
+Subnet: **192.168.20.0/24**
+Gateway: **192.168.20.1 (OpenWrt)**
+
+| Hostname       | IP            | Role               |
+| -------------- | ------------- | ------------------ |
+| pi5-bastion-01 | 192.168.20.10 | SSH Access Gateway |
+| pi5-ctrl-01    | 192.168.20.11 | k3s Control Plane  |
+| pi5-worker-01  | 192.168.20.21 | k3s Agent          |
+| pi5-worker-02  | 192.168.20.22 | k3s Agent          |
+| pi5-worker-03  | 192.168.20.23 | k3s Agent          |
+| pi4-rancher-01 | 192.168.20.30 | Rancher / Utility  |
+
+---
+
+# k3s Cluster Architecture
+
+```
 k3s Cluster (192.168.20.0/24)
 --------------------------------
 
@@ -91,74 +93,78 @@ Control Plane:
   - k3s server
   - API Server
   - Scheduler
-  - etcd
+  - Embedded datastore (etcd)
 
 Worker Nodes:
-  pi5-worker-01 (agent)
-  pi5-worker-02 (agent)
-  pi5-worker-03 (agent)
+  pi5-worker-01
+  pi5-worker-02
+  pi5-worker-03
 ```
 
-Cluster administration is performed from the Bastion host using `kubectl`.
+Cluster administration is performed exclusively from `pi5-bastion-01` using `kubectl`.
 
 The Bastion contains the kubeconfig and is the only system authorized to communicate directly with the control plane API.
 
 ---
 
-## Access Control Model
+# Access Control Model
 
-Administrative access flow:
+## Administrative Access Flow
 
-```text
+```
 Admin Laptop (192.168.1.x)
     ↓
 AXE95
     ↓
-Archer A7 (firewall rule: allow SSH to bastion only)
+Archer A7 (Firewall rule: allow SSH to bastion only)
     ↓
-Bastion (192.168.20.10)
+pi5-bastion-01 (192.168.20.10)
     ↓
-SSH to pi5 nodes
+SSH to cluster nodes
     ↓
-kubectl to cluster
+kubectl to control plane
 ```
+
+No cluster node is directly accessible from the Home LAN.
 
 ---
 
-## Policy Enforcement
+# Policy Enforcement
 
 The OpenWrt firewall enforces explicit deny rules.
 
-```text
-Home LAN  → k3s Node      ❌ BLOCKED
-Home LAN  → Lab Subnet    ❌ BLOCKED (except Bastion SSH)
-k3s Node  → Internet      ❌ BLOCKED (egress restricted)
-k3s Node  → Home LAN      ❌ BLOCKED
-```
+### Blocked Traffic
 
-Allowed traffic:
+* Home LAN → pi5-ctrl-01 ❌
+* Home LAN → pi5-worker-* ❌
+* Home LAN → Lab Subnet ❌ (except bastion SSH)
+* pi5-worker-* → Internet ❌ (egress restricted)
+* pi5-worker-* → Home LAN ❌
 
-```text
-Home LAN → Bastion (TCP/22)
-Bastion → k3s Nodes (SSH / API as required)
-```
+### Allowed Traffic
 
-This prevents direct IT → OT communication and enforces access mediation.
+* Home LAN → pi5-bastion-01 (TCP/22 only)
+* pi5-bastion-01 → pi5-ctrl-01 (API / SSH as required)
+* pi5-bastion-01 → pi5-worker-* (SSH as required)
+* pi5-ctrl-01 ↔ pi5-worker-* (k3s cluster communication)
+
+This enforces strict IT → OT mediation.
 
 ---
 
-## Bastion Host Configuration
+# Bastion Host Configuration
 
-The Bastion host:
+`pi5-bastion-01` is configured with:
 
-* Static IP on 192.168.20.0/24
+* Static IP (192.168.20.10)
 * IP forwarding disabled
 * SSH key-based authentication only
 * Password authentication disabled
 * Fail2ban enabled
 * auditd enabled
 * No container workloads
-* No external exposure
+* No public exposure
+* No routing capability
 
 It functions strictly as:
 
@@ -168,7 +174,7 @@ It functions strictly as:
 
 ---
 
-## Security Objectives Demonstrated
+# Security Objectives Demonstrated
 
 This lab demonstrates:
 
@@ -178,31 +184,30 @@ This lab demonstrates:
 * Least privilege traffic flow
 * North-South vs East-West filtering
 * Control plane isolation
-* Kubernetes cluster containment
-* Defense-in-depth at small scale
+* Kubernetes workload containment
+* Defense-in-depth implementation at small scale
 
 ---
 
-## Current Status
+# Current Status
 
 * Dual-router segmentation implemented
 * OpenWrt boundary firewall configured
 * Lab subnet isolated (192.168.20.0/24)
-* Bastion hardened and operational
+* pi5-bastion-01 hardened and operational
 * k3s cluster deployed and reachable only via bastion
-* Direct Home LAN → Lab access blocked
+* Direct Home LAN → cluster node access blocked
+* Egress restrictions enforced
 
 ---
 
-## Future Enhancements
+# Future Enhancements
 
 * VLAN-based internal separation (Mgmt vs Workload plane)
-* Logging aggregation and centralized monitoring
-* MFA-enabled SSH on Bastion
+* Centralized logging aggregation (e.g., Loki / ELK)
+* MFA-enabled SSH on bastion
 * HA control plane expansion
-* IDS/IPS within lab boundary
-* Network policy enforcement within Kubernetes
-
----
-
-Additional documentation, configuration snapshots, and updates are located in the `/docs` directory.
+* IDS/IPS inside lab boundary
+* Kubernetes NetworkPolicy enforcement
+* Internal DNS for hostname resolution
+* Reverse proxy / ingress hardening
