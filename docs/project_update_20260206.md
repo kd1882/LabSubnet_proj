@@ -1,4 +1,4 @@
-# Personal Lab Network Notes (Current State 20260206)
+# 20260206 Update
 
 ## Hardware in Use
 
