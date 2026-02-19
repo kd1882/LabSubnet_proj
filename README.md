@@ -186,28 +186,3 @@ This lab demonstrates:
 * Control plane isolation
 * Kubernetes workload containment
 * Defense-in-depth implementation at small scale
-
----
-
-# Current Status
-
-* Dual-router segmentation implemented
-* OpenWrt boundary firewall configured
-* Lab subnet isolated (192.168.20.0/24)
-* pi5-bastion-01 hardened and operational
-* k3s cluster deployed and reachable only via bastion
-* Direct Home LAN → cluster node access blocked
-* Egress restrictions enforced
-
----
-
-# Future Enhancements
-
-* VLAN-based internal separation (Mgmt vs Workload plane)
-* Centralized logging aggregation (e.g., Loki / ELK)
-* MFA-enabled SSH on bastion
-* HA control plane expansion
-* IDS/IPS inside lab boundary
-* Kubernetes NetworkPolicy enforcement
-* Internal DNS for hostname resolution
-* Reverse proxy / ingress hardening
