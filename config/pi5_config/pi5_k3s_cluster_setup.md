@@ -1,6 +1,9 @@
 # Lab Cluster Build Documentation
 
 Subnet: **192.168.20.0/24**
+   
+*need to update docs on setting up a local registry with harbor*
+
 
 ---
 
